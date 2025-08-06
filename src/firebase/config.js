@@ -1,19 +1,19 @@
+
+
 // Importa las funciones de Firebase que usaremos
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
-// Tu configuración de Firebase (la que copiaste)
-// Your web app's Firebase configuration
-
+// Configuración usando variables de entorno
 const firebaseConfig = {
-  apiKey: "AIzaSyAP1V_ACbYota-5pmsyU_jqOqcS5-dQgCU",
-  authDomain: "prueba-jesus-62ac6.firebaseapp.com",
-  projectId: "prueba-jesus-62ac6",
-  storageBucket: "prueba-jesus-62ac6.firebasestorage.app",
-  messagingSenderId: "134724954252",
-  appId: "1:134724954252:web:006411bf960cc7fe3173a9"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 // Inicializa Firebase solo una vez

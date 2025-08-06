@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { ref, deleteObject } from "firebase/storage";
 import { useAuthState } from "react-firebase-hooks/auth";
+import EliminarTodas from "./EliminarTodas";
 
 export default function ListaTareas() {
   const [tareas, setTareas] = useState([]);
@@ -53,16 +54,26 @@ export default function ListaTareas() {
 
   return (
     <div className="w-full max-w-2xl mt-8 space-y-4">
-      <h2 className="text-2xl font-bold">Mis Tareas</h2>
-
+      <h2 className="text-2xl font-bold text-green-600">Mis Tareas</h2>
+      {/* Aquí mostramos el botón para eliminar todas las tareas, 
+        solo si hay tareas y el usuario está autenticado */}
+      {tareas.length > 0 && user && (
+        <div className="mb-4">
+          <EliminarTodas />
+        </div>
+      )}
       {tareas.length === 0 && (
-        <p className="text-gray-500">No hay tareas registradas aún.</p>
+        <p className="text-gray-500 text-red-600">
+          No hay tareas registradas aún.
+        </p>
       )}
 
       {tareas.map((tarea) => (
         <div key={tarea.id} className="border p-4 rounded shadow relative">
-          <h3 className="text-xl font-semibold">{tarea.titulo}</h3>
-          <p className="text-gray-700">{tarea.descripcion}</p>
+          <h3 className="text-xl text-green-600 font-bolder uppercase">
+            {tarea.titulo}
+          </h3>
+          <p className="text-700">{tarea.descripcion}</p>
 
           {tarea.imagen && (
             <img
@@ -77,12 +88,21 @@ export default function ListaTareas() {
           </p>
 
           {user?.uid === tarea.autor?.uid && (
-            <button
-              onClick={() => eliminarTarea(tarea)}
-              className="absolute top-2 right-2 text-red-600 hover:underline text-sm"
-            >
-              Eliminar
-            </button>
+            <div className="absolute top-2 right-2 flex gap-2">
+              <button
+                onClick={() => eliminarTarea(tarea)}
+                className="text-red-600 hover:underline text-sm"
+              >
+                Eliminar
+              </button>
+
+              <a
+                href={`/editar/${tarea.id}`}
+                className="text-blue-600 hover:underline text-sm"
+              >
+                Editar
+              </a>
+            </div>
           )}
         </div>
       ))}

@@ -59,16 +59,16 @@ export default function NuevaTarea() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white p-6 rounded shadow-md w-full max-w-md flex flex-col gap-4"
+      className="mt-28 bg-white p-6 rounded shadow-md w-full max-w-md flex flex-col gap-4"
     >
-      <h2 className="text-xl font-bold text-center">Crear Nueva Tarea</h2>
+      <h2 className="text-xl text-black font-bold text-center">Crear Nueva Tarea</h2>
 
       <input
         type="text"
         placeholder="Título"
         value={titulo}
         onChange={(e) => setTitulo(e.target.value)}
-        className="border p-2 rounded"
+        className="text-gray-600 border p-2 rounded"
         required
       />
 
@@ -76,7 +76,7 @@ export default function NuevaTarea() {
         placeholder="Descripción"
         value={descripcion}
         onChange={(e) => setDescripcion(e.target.value)}
-        className="border p-2 rounded"
+        className="text-gray-600 border p-2 rounded"
         rows={4}
         required
       />
@@ -85,7 +85,7 @@ export default function NuevaTarea() {
         type="file"
         accept="image/*"
         onChange={(e) => setImagen(e.target.files[0])}
-        className="border p-2 rounded"
+        className="text-gray-600 border p-2 rounded hover:text-black hover:font-bold transition-all duration-300"
       />
 
       <button
