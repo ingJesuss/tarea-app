@@ -38,8 +38,8 @@ export default function ListaTareas() {
 
     try {
       // 1. Eliminar imagen si existe
-      if (tarea.imagen) {
-        const ruta = ref(storage, tarea.imagen);
+      if (tarea.imagenPath) {
+        const ruta = ref(storage, tarea.imagenPath);
         await deleteObject(ruta).catch(() => {
           // En caso de error, ignoramos (la imagen podría haber sido eliminada antes)
         });
@@ -72,10 +72,10 @@ export default function ListaTareas() {
           key={tarea.id}
           className="bg-white/90 backdrop-blur-sm border border-gray-200 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group hover:scale-[1.02]"
         >
-          {tarea.imagen && (
+          {tarea.imagenURL && (
             <div className="relative h-48 overflow-hidden">
               <img
-                src={tarea.imagen}
+                src={tarea.imagenURL}
                 alt="Imagen de la tarea"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
               />
@@ -151,9 +151,9 @@ export default function ListaTareas() {
               <tr key={tarea.id} className="hover:bg-gray-50 transition-colors duration-200">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    {tarea.imagen && (
+                    {tarea.imagenURL && (
                       <img
-                        src={tarea.imagen}
+                        src={tarea.imagenURL}
                         alt="Imagen de la tarea"
                         className="w-12 h-12 object-cover rounded-lg"
                       />

@@ -22,20 +22,23 @@ export default function NuevaTareaModal({ isOpen, onClose }) {
 
     try {
       let urlImagen = "";
+      let rutaImagen = "";
 
       // Si hay imagen, subirla a Firebase Storage
       if (imagen) {
         const nombreArchivo = `${uuidv4()}-${imagen.name}`;
-        const ruta = ref(storage, `imagenes/${nombreArchivo}`);
-        await uploadBytes(ruta, imagen);
-        urlImagen = await getDownloadURL(ruta);
+        rutaImagen = `imagenes/${nombreArchivo}`;
+        const storageRef = ref(storage, rutaImagen);
+        await uploadBytes(storageRef, imagen);
+        urlImagen = await getDownloadURL(storageRef);
       }
 
       // Guardar tarea en Firestore
       await addDoc(collection(db, "tareas"), {
         titulo,
         descripcion,
-        imagen: urlImagen || null,
+        imagenURL: urlImagen || null,
+        imagenPath: rutaImagen || null, // Guardamos la ruta del archivo
         autor: {
           uid: user.uid,
           nombre: user.displayName,
