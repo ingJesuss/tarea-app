@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { db, storage, auth } from "@/firebase/config";
 import { addDoc, collection, Timestamp } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL, listAll } from "firebase/storage";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { v4 as uuidv4 } from "uuid";
 
@@ -16,19 +16,76 @@ export default function NuevaTarea() {
 
   const [user] = useAuthState(auth);
 
+  // Función para probar la conexión con Firebase Storage
+  const probarConexionStorage = async () => {
+    try {
+      console.log("Probando conexión con Firebase Storage...");
+      const storageRef = ref(storage, 'imagenes/');
+      await listAll(storageRef);
+      console.log("✅ Conexión con Storage exitosa");
+      return true;
+    } catch (error) {
+      console.error("❌ Error de conexión con Storage:", error);
+      return false;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setCargando(true);
 
     try {
+      // Verificar que el usuario esté autenticado
+      if (!user) {
+        alert("Debes estar autenticado para crear una tarea ❌");
+        setCargando(false);
+        return;
+      }
+
       let urlImagen = "";
 
       // Si hay imagen, subirla a Firebase Storage
       if (imagen) {
-        const nombreArchivo = `${uuidv4()}-${imagen.name}`;
-        const ruta = ref(storage, `imagenes/${nombreArchivo}`);
-        await uploadBytes(ruta, imagen);
-        urlImagen = await getDownloadURL(ruta);
+        console.log("Subiendo imagen:", imagen.name);
+        console.log("Usuario autenticado:", user.uid);
+        
+        // Probar conexión primero
+        const conexionOk = await probarConexionStorage();
+        if (!conexionOk) {
+          const continuar = window.confirm(
+            "Hay problemas de conexión con el almacenamiento. ¿Deseas guardar la tarea sin imagen?"
+          );
+          if (!continuar) {
+            throw new Error("Conexión con Storage fallida");
+          }
+          urlImagen = "";
+        } else {
+          const nombreArchivo = `${uuidv4()}-${imagen.name}`;
+          const ruta = ref(storage, `imagenes/${nombreArchivo}`);
+          
+          try {
+            await uploadBytes(ruta, imagen);
+            urlImagen = await getDownloadURL(ruta);
+            console.log("Imagen subida exitosamente:", urlImagen);
+          } catch (storageError) {
+            console.error("Error específico de Storage:", storageError);
+            console.error("Código de error:", storageError.code);
+            console.error("Mensaje de error:", storageError.message);
+            
+            // Preguntar al usuario si quiere continuar sin imagen
+            const continuar = window.confirm(
+              "No se pudo subir la imagen. ¿Deseas guardar la tarea sin imagen?"
+            );
+            
+            if (!continuar) {
+              throw new Error("Upload cancelled by user");
+            }
+            
+            // Continuar sin imagen
+            urlImagen = "";
+            console.log("Continuando sin imagen por error de upload");
+          }
+        }
       }
 
       // Guardar tarea en Firestore
@@ -51,8 +108,24 @@ export default function NuevaTarea() {
       setPreviewImagen(null);
       alert("Tarea guardada con éxito ✅");
     } catch (error) {
-      console.error("Error al guardar tarea:", error);
-      alert("Hubo un error al guardar la tarea ❌");
+      console.error("Error completo:", error);
+      console.error("Tipo de error:", error.constructor.name);
+      
+      let mensajeError = "Hubo un error al guardar la tarea ❌";
+      
+      if (error.code) {
+        console.error("Código de error Firebase:", error.code);
+        
+        if (error.code === 'storage/unauthorized') {
+          mensajeError = "No tienes permisos para subir imágenes. Verifica que estés autenticado ❌";
+        } else if (error.code === 'storage/unknown') {
+          mensajeError = "Error de conexión con el servidor. Verifica tu conexión a internet ❌";
+        } else if (error.code === 'storage/quota-exceeded') {
+          mensajeError = "Se ha excedido el límite de almacenamiento ❌";
+        }
+      }
+      
+      alert(mensajeError);
     }
 
     setCargando(false);
@@ -60,6 +133,25 @@ export default function NuevaTarea() {
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
+    
+    if (file) {
+      // Validar tipo de archivo
+      const tiposPermitidos = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+      if (!tiposPermitidos.includes(file.type)) {
+        alert("Tipo de archivo no permitido. Usa: JPG, PNG, GIF o WebP ❌");
+        return;
+      }
+      
+      // Validar tamaño (máximo 5MB)
+      const tamañoMaximo = 5 * 1024 * 1024; // 5MB en bytes
+      if (file.size > tamañoMaximo) {
+        alert("La imagen es muy grande. Máximo 5MB permitido ❌");
+        return;
+      }
+      
+      console.log("Archivo válido:", file.name, "Tamaño:", (file.size / 1024 / 1024).toFixed(2) + "MB");
+    }
+    
     setImagen(file);
     
     if (file) {
